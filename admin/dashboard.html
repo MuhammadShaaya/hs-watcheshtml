@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard — H&amp;S Admin</title>
+<link rel="stylesheet" href="../css/style.css">
+<link rel="stylesheet" href="admin.css">
+</head>
+<body data-admin-page="dashboard">
+<div class="admin-shell">
+  <aside class="admin-sidebar" id="adminSidebar"></aside>
+  <main class="admin-main">
+    <div class="admin-topbar"><h1 id="pageTitle">Dashboard</h1></div>
+    <div class="stat-grid" id="statGrid">
+      <div class="stat-card"><b>—</b><span>Products</span></div>
+      <div class="stat-card"><b>—</b><span>Orders</span></div>
+      <div class="stat-card"><b>—</b><span>Pending orders</span></div>
+      <div class="stat-card"><b>—</b><span>Unread messages</span></div>
+    </div>
+    <div class="admin-table-wrap">
+      <table class="admin-table">
+        <thead><tr><th>Recent orders</th><th>Customer</th><th>Total</th><th>Status</th></tr></thead>
+        <tbody id="recentOrders"><tr><td colspan="4" class="text-dim">Loading…</td></tr></tbody>
+      </table>
+    </div>
+  </main>
+</div>
+<script src="../js/config.js"></script>
+<script src="admin.js"></script>
+<script>
+requireAdminAuth();
+renderAdminShell("dashboard", "Dashboard");
+(async function(){
+  try {
+    const summary = await adminFetch("/api/admin/summary");
+    const cards = document.querySelectorAll("#statGrid .stat-card b");
+    cards[0].textContent = summary.productCount;
+    cards[1].textContent = summary.orderCount;
+    cards[2].textContent = summary.pendingOrders;
+    cards[3].textContent = summary.unreadMessages;
+
+    const orders = await adminFetch("/api/admin/orders");
+    const tbody = document.getElementById("recentOrders");
+    const recent = orders.slice(0, 6);
+    tbody.innerHTML = recent.length ? recent.map(o => `
+      <tr>
+        <td>#${o.id}</td>
+        <td>${o.customer?.name || "—"}</td>
+        <td>${formatPrice(o.total)}</td>
+        <td><span class="${statusPillClass(o.status)}">${o.status}</span></td>
+      </tr>
+    `).join("") : `<tr><td colspan="4" class="text-dim">No orders yet.</td></tr>`;
+  } catch (e) {
+    document.getElementById("recentOrders").innerHTML = `<tr><td colspan="4" class="text-dim">${e.message}</td></tr>`;
+  }
+})();
+</script>
+</body>
+</html>

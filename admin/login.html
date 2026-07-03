@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Login — H&amp;S Watches</title>
+<link rel="stylesheet" href="../css/style.css">
+<link rel="stylesheet" href="admin.css">
+</head>
+<body>
+<div class="login-shell">
+  <div class="login-card">
+    <div style="text-align:center; margin-bottom:26px;">
+      <div class="brand" style="justify-content:center; font-size:24px;">H&amp;S<span><small style="display:block; font-size:9px; letter-spacing:.24em; color:var(--gold); text-transform:uppercase; margin-top:4px;">Admin Panel</small></span></div>
+    </div>
+    <div id="formMsg" class="form-msg"></div>
+    <form id="loginForm">
+      <div class="field"><label>Username</label><input type="text" id="username" required autofocus></div>
+      <div class="field"><label>Password</label><input type="password" id="password" required></div>
+      <button type="submit" class="btn btn-gold btn-block" id="loginBtn">Log in</button>
+    </form>
+    <p class="text-dim" style="font-size:12px; margin-top:18px; text-align:center;">Default: admin / admin123 — change in backend .env</p>
+  </div>
+</div>
+
+<script src="../js/config.js"></script>
+<script src="admin.js"></script>
+<script>
+if (getAdminToken()) window.location.href = "dashboard.html";
+
+document.getElementById("loginForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const msg = document.getElementById("formMsg");
+  const btn = document.getElementById("loginBtn");
+  btn.disabled = true; btn.textContent = "Logging in…";
+  try {
+    const res = await fetch(`${API_BASE_URL}/api/admin/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        username: document.getElementById("username").value.trim(),
+        password: document.getElementById("password").value,
+      }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || "Login failed");
+    setAdminToken(data.token);
+    window.location.href = "dashboard.html";
+  } catch (err) {
+    msg.className = "form-msg err show";
+    msg.textContent = err.message.includes("fetch") ? "Couldn't reach the backend. Is it running?" : err.message;
+    btn.disabled = false; btn.textContent = "Log in";
+  }
+});
+</script>
+</body>
+</html>
