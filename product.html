@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Product — H&amp;S Watches</title>
+<link rel="stylesheet" href="css/style.css">
+<style>
+  .pd-wrap{ display:grid; grid-template-columns:1fr 1fr; gap:60px; }
+  @media (max-width:900px){ .pd-wrap{ grid-template-columns:1fr; } }
+  .pd-media{ border-radius:var(--radius-lg); overflow:hidden; border:1px solid var(--line); aspect-ratio:1/1; }
+  .pd-media img{ width:100%; height:100%; object-fit:cover; }
+  .pd-thumbs{ display:flex; gap:10px; margin-top:12px; flex-wrap:wrap; }
+  .pd-thumb{ width:68px; height:68px; border-radius:10px; overflow:hidden; border:2px solid var(--line); opacity:.7; transition:opacity .2s, border-color .2s; padding:0; background:none; }
+  .pd-thumb img{ width:100%; height:100%; object-fit:cover; }
+  .pd-thumb:hover{ opacity:1; }
+  .pd-thumb.active{ opacity:1; border-color:var(--gold); }
+  .qty-box{ display:flex; align-items:center; border:1px solid var(--line); border-radius:12px; overflow:hidden; width:fit-content; }
+  .qty-box button{ background:transparent; border:none; color:var(--ivory); width:40px; height:44px; font-size:16px; }
+  .qty-box input{ width:48px; text-align:center; background:transparent; border:none; color:var(--ivory); font-size:14px; }
+  .pd-tabs{ display:flex; gap:26px; border-bottom:1px solid var(--line); margin:50px 0 24px; }
+  .pd-tab-btn{ background:none; border:none; color:var(--ivory-dim); padding:10px 0; font-size:13px; font-weight:600; letter-spacing:.03em; border-bottom:2px solid transparent; }
+  .pd-tab-btn.active{ color:var(--gold-light); border-color:var(--gold); }
+  .pd-tab-panel{ display:none; color:var(--ivory-dim); font-size:14px; line-height:1.8; }
+  .pd-tab-panel.active{ display:block; }
+  .specs-list{ display:grid; grid-template-columns:1fr 1fr; gap:12px 30px; }
+  .specs-list div{ display:flex; justify-content:space-between; border-bottom:1px dashed var(--line); padding-bottom:8px; font-size:13px; }
+</style>
+</head>
+<body data-page="shop">
+
+<nav class="nav" id="site-nav"></nav>
+
+<section class="section" id="productSection">
+  <div class="container">
+    <p class="text-dim" id="loadingMsg">Loading watch…</p>
+  </div>
+</section>
+
+<section class="section section-alt" id="relatedSection" style="display:none;">
+  <div class="container">
+    <div class="section-head">
+      <div><span class="eyebrow">You may also like</span><h2>Related timepieces</h2></div>
+    </div>
+    <div class="grid" id="relatedGrid"></div>
+  </div>
+</section>
+
+<footer class="footer" id="site-footer"></footer>
+
+<script src="js/config.js"></script>
+<script src="js/api.js"></script>
+<script src="js/cart.js"></script>
+<script src="js/products.js"></script>
+<script src="js/main.js"></script>
+<script>
+(async function(){
+  const id = Number(new URLSearchParams(location.search).get("id"));
+  const container = document.getElementById("productSection").querySelector(".container");
+  let products = [];
+  try {
+    products = await getAllProducts();
+  } catch (e) {
+    container.innerHTML = `<p class="text-dim">Couldn't load product. Is the backend running? (${e.message})</p>`;
+    return;
+  }
+  const p = products.find(x => x.id === id);
+  if (!p) {
+    container.innerHTML = `<div class="empty"><h3>Watch not found</h3><p>It may have been removed. <a href="shop.html" style="color:var(--gold-light);">Back to shop →</a></p></div>`;
+    return;
+  }
+  document.title = `${p.name} — H&S Watches`;
+  const wished = getWishlist().includes(p.id);
+  const images = (p.images && p.images.length) ? p.images : [p.image || ""];
+
+  container.innerHTML = `
+    <div class="pd-wrap">
+      <div>
+        <div class="pd-media"><img src="${images[0]}" alt="${p.name}" id="mainImage"></div>
+        ${images.length > 1 ? `<div class="pd-thumbs" id="thumbRow">
+          ${images.map((img, i) => `<button type="button" class="pd-thumb ${i===0?'active':''}" data-src="${img}"><img src="${img}" alt="${p.name} view ${i+1}"></button>`).join("")}
+        </div>` : ""}
+      </div>
+      <div>
+        <span class="eyebrow">${p.category}</span>
+        <h1 style="font-size:clamp(28px,3.4vw,38px); margin:14px 0 10px;">${p.name}</h1>
+        ${starRow(p.rating)}
+        <div class="card-price" style="margin:18px 0;">
+          <span class="price" style="font-size:24px;">${formatPrice(p.price)}</span>
+          ${p.oldPrice ? `<span class="price-old" style="font-size:16px;">${formatPrice(p.oldPrice)}</span>` : ""}
+        </div>
+        <p class="text-dim" style="max-width:460px;">${p.description || ""}</p>
+        <p style="font-size:13px; margin-top:16px; color:${p.stock > 0 ? 'var(--success)' : 'var(--danger)'};">
+          ${p.stock > 0 ? `In stock — ${p.stock} available` : "Currently out of stock"}
+        </p>
+        <div style="display:flex; align-items:center; gap:18px; margin:26px 0;">
+          <div class="qty-box">
+            <button type="button" id="qtyDown">−</button>
+            <input type="text" id="qtyInput" value="1" readonly>
+            <button type="button" id="qtyUp">+</button>
+          </div>
+          <button class="icon-btn ${wished ? 'active' : ''}" id="wishBtn" aria-label="Wishlist" style="color:${wished ? 'var(--gold-light)' : ''}">${HEART_ICON}</button>
+        </div>
+        <div class="hero-actions">
+          <button class="btn btn-gold" id="addBtn" ${p.stock === 0 ? "disabled" : ""}>Add to cart</button>
+          <a class="btn btn-outline" href="checkout.html" id="buyNowBtn">Buy now</a>
+        </div>
+        <p style="font-size:12px; color:var(--ivory-dim); margin-top:18px;">Cash on delivery · Ships within 2–4 business days</p>
+
+        <div class="pd-tabs">
+          <button class="pd-tab-btn active" data-tab="desc">Description</button>
+          <button class="pd-tab-btn" data-tab="specs">Specifications</button>
+          <button class="pd-tab-btn" data-tab="shipping">Shipping</button>
+        </div>
+        <div class="pd-tab-panel active" data-panel="desc"><p>${p.description || "No description available."}</p></div>
+        <div class="pd-tab-panel" data-panel="specs">
+          <div class="specs-list">
+            <div><span>Category</span><span>${p.category}</span></div>
+            <div><span>Rating</span><span>${(p.rating||0).toFixed(1)} / 5</span></div>
+            <div><span>Availability</span><span>${p.stock} in stock</span></div>
+            <div><span>Price</span><span>${formatPrice(p.price)}</span></div>
+          </div>
+        </div>
+        <div class="pd-tab-panel" data-panel="shipping">
+          <p>Delivered nationwide via cash on delivery. Orders are dispatched within 1–2 business days and typically arrive within 2–4 business days depending on your city. You may inspect the watch before paying the courier.</p>
+        </div>
+      </div>
+    </div>
+  `;
+
+  let qty = 1;
+  const qtyInput = document.getElementById("qtyInput");
+  document.getElementById("qtyUp").onclick = () => { qty++; qtyInput.value = qty; };
+  document.getElementById("qtyDown").onclick = () => { qty = Math.max(1, qty-1); qtyInput.value = qty; };
+  document.getElementById("addBtn").onclick = () => addToCart(p, qty);
+  document.getElementById("buyNowBtn").onclick = () => addToCart(p, qty);
+  document.querySelectorAll(".pd-thumb").forEach(btn => {
+    btn.addEventListener("click", () => {
+      document.getElementById("mainImage").src = btn.dataset.src;
+      document.querySelectorAll(".pd-thumb").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+    });
+  });
+  document.getElementById("wishBtn").onclick = (e) => {
+    const active = toggleWishlist(p.id);
+    e.currentTarget.style.color = active ? "var(--gold-light)" : "";
+  };
+  document.querySelectorAll(".pd-tab-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      document.querySelectorAll(".pd-tab-btn").forEach(b => b.classList.remove("active"));
+      document.querySelectorAll(".pd-tab-panel").forEach(p2 => p2.classList.remove("active"));
+      btn.classList.add("active");
+      document.querySelector(`[data-panel="${btn.dataset.tab}"]`).classList.add("active");
+    });
+  });
+
+  const related = products.filter(x => x.category === p.category && x.id !== p.id).slice(0, 4);
+  if (related.length) {
+    document.getElementById("relatedSection").style.display = "block";
+    const rg = document.getElementById("relatedGrid");
+    rg.innerHTML = related.map(productCard).join("");
+    bindCardEvents(rg, products);
+  }
+})();
+</script>
+</body>
+</html>
