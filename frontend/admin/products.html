@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Products — H&amp;S Admin</title>
+<link rel="stylesheet" href="../css/style.css">
+<link rel="stylesheet" href="admin.css">
+</head>
+<body data-admin-page="products">
+<div class="admin-shell">
+  <aside class="admin-sidebar" id="adminSidebar"></aside>
+  <main class="admin-main">
+    <div class="admin-topbar">
+      <h1 id="pageTitle">Products</h1>
+      <button class="btn btn-gold" id="newProductBtn">+ Add product</button>
+    </div>
+    <div class="admin-table-wrap">
+      <table class="admin-table">
+        <thead><tr><th></th><th>Name</th><th>Category</th><th>Price</th><th>Stock</th><th>Featured</th><th>Actions</th></tr></thead>
+        <tbody id="productsBody"><tr><td colspan="7" class="text-dim">Loading…</td></tr></tbody>
+      </table>
+    </div>
+  </main>
+</div>
+
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <h3 id="modalTitle">Add product</h3>
+    <div id="modalMsg" class="form-msg"></div>
+    <form id="productForm">
+      <input type="hidden" id="pId">
+      <div class="field"><label>Name</label><input type="text" id="pName" required></div>
+      <div class="field-row">
+        <div class="field"><label>Category</label><input type="text" id="pCategory" required></div>
+        <div class="field"><label>Image URL</label><input type="text" id="pImage" required placeholder="https://…"></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>Price</label><input type="number" id="pPrice" required min="0"></div>
+        <div class="field"><label>Old price (optional)</label><input type="number" id="pOldPrice" min="0"></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>Stock</label><input type="number" id="pStock" required min="0"></div>
+        <div class="field"><label>Rating (0–5)</label><input type="number" id="pRating" step="0.1" min="0" max="5" value="4.5"></div>
+      </div>
+      <div class="field"><label>Description</label><textarea id="pDescription"></textarea></div>
+      <div class="field" style="flex-direction:row; align-items:center; gap:10px;">
+        <input type="checkbox" id="pFeatured" style="width:auto;"><label style="margin:0;">Featured product</label>
+      </div>
+      <div class="modal-actions">
+        <button type="submit" class="btn btn-gold" id="saveBtn">Save product</button>
+        <button type="button" class="btn btn-outline" id="cancelBtn">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script src="../js/config.js"></script>
+<script src="admin.js"></script>
+<script>
+requireAdminAuth();
+renderAdminShell("products", "Products");
+
+let allProducts = [];
+const overlay = document.getElementById("modalOverlay");
+const form = document.getElementById("productForm");
+const modalMsg = document.getElementById("modalMsg");
+
+function openModal(product = null) {
+  form.reset();
+  modalMsg.className = "form-msg";
+  document.getElementById("modalTitle").textContent = product ? "Edit product" : "Add product";
+  document.getElementById("pId").value = product ? product.id : "";
+  document.getElementById("pName").value = product?.name || "";
+  document.getElementById("pCategory").value = product?.category || "";
+  document.getElementById("pImage").value = product?.image || "";
+  document.getElementById("pPrice").value = product?.price ?? "";
+  document.getElementById("pOldPrice").value = product?.oldPrice ?? "";
+  document.getElementById("pStock").value = product?.stock ?? "";
+  document.getElementById("pRating").value = product?.rating ?? 4.5;
+  document.getElementById("pDescription").value = product?.description || "";
+  document.getElementById("pFeatured").checked = !!product?.featured;
+  overlay.classList.add("show");
+}
+function closeModal() { overlay.classList.remove("show"); }
+document.getElementById("newProductBtn").onclick = () => openModal();
+document.getElementById("cancelBtn").onclick = closeModal;
+overlay.addEventListener("click", (e) => { if (e.target === overlay) closeModal(); });
+
+async function loadProducts() {
+  const tbody = document.getElementById("productsBody");
+  try {
+    allProducts = await (await fetch(`${API_BASE_URL}/api/products`)).json();
+    tbody.innerHTML = allProducts.length ? allProducts.map(p => `
+      <tr>
+        <td><img src="${p.image}" alt=""></td>
+        <td>${p.name}</td>
+        <td>${p.category}</td>
+        <td>${formatPrice(p.price)}</td>
+        <td>${p.stock}</td>
+        <td>${p.featured ? "Yes" : "—"}</td>
+        <td>
+          <div class="row-actions">
+            <button data-edit="${p.id}">Edit</button>
+            <button class="danger" data-delete="${p.id}">Delete</button>
+          </div>
+        </td>
+      </tr>
+    `).join("") : `<tr><td colspan="7" class="text-dim">No products yet — add your first one.</td></tr>`;
+
+    tbody.querySelectorAll("[data-edit]").forEach(b => b.onclick = () => {
+      const p = allProducts.find(x => x.id === Number(b.dataset.edit));
+      openModal(p);
+    });
+    tbody.querySelectorAll("[data-delete]").forEach(b => b.onclick = async () => {
+      if (!confirm("Delete this product? This can't be undone.")) return;
+      try {
+        await adminFetch(`/api/admin/products/${b.dataset.delete}`, { method: "DELETE" });
+        loadProducts();
+      } catch (e) { alert(e.message); }
+    });
+  } catch (e) {
+    tbody.innerHTML = `<tr><td colspan="7" class="text-dim">${e.message}</td></tr>`;
+  }
+}
+
+form.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const id = document.getElementById("pId").value;
+  const payload = {
+    name: document.getElementById("pName").value.trim(),
+    category: document.getElementById("pCategory").value.trim(),
+    image: document.getElementById("pImage").value.trim(),
+    price: Number(document.getElementById("pPrice").value),
+    oldPrice: document.getElementById("pOldPrice").value ? Number(document.getElementById("pOldPrice").value) : null,
+    stock: Number(document.getElementById("pStock").value),
+    rating: Number(document.getElementById("pRating").value),
+    description: document.getElementById("pDescription").value.trim(),
+    featured: document.getElementById("pFeatured").checked,
+  };
+  const saveBtn = document.getElementById("saveBtn");
+  saveBtn.disabled = true; saveBtn.textContent = "Saving…";
+  try {
+    if (id) await adminFetch(`/api/admin/products/${id}`, { method: "PUT", body: JSON.stringify(payload) });
+    else await adminFetch("/api/admin/products", { method: "POST", body: JSON.stringify(payload) });
+    closeModal();
+    loadProducts();
+  } catch (err) {
+    modalMsg.className = "form-msg err show";
+    modalMsg.textContent = err.message;
+  }
+  saveBtn.disabled = false; saveBtn.textContent = "Save product";
+});
+
+loadProducts();
+</script>
+</body>
+</html>

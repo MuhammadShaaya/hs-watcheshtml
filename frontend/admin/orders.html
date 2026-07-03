@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Orders — H&amp;S Admin</title>
+<link rel="stylesheet" href="../css/style.css">
+<link rel="stylesheet" href="admin.css">
+</head>
+<body data-admin-page="orders">
+<div class="admin-shell">
+  <aside class="admin-sidebar" id="adminSidebar"></aside>
+  <main class="admin-main">
+    <div class="admin-topbar"><h1 id="pageTitle">Orders</h1></div>
+    <div class="admin-table-wrap">
+      <table class="admin-table">
+        <thead><tr><th>ID</th><th>Customer</th><th>Phone</th><th>Items</th><th>Total</th><th>Status</th><th>Placed</th><th>Actions</th></tr></thead>
+        <tbody id="ordersBody"><tr><td colspan="8" class="text-dim">Loading…</td></tr></tbody>
+      </table>
+    </div>
+  </main>
+</div>
+
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <h3>Order details</h3>
+    <div id="orderDetail"></div>
+    <div class="modal-actions"><button type="button" class="btn btn-outline" id="closeDetailBtn">Close</button></div>
+  </div>
+</div>
+
+<script src="../js/config.js"></script>
+<script src="admin.js"></script>
+<script>
+requireAdminAuth();
+renderAdminShell("orders", "Orders");
+
+const STATUSES = ["Pending", "Processing", "Shipped", "Delivered", "Cancelled"];
+let orders = [];
+
+async function loadOrders() {
+  const tbody = document.getElementById("ordersBody");
+  try {
+    orders = await adminFetch("/api/admin/orders");
+    tbody.innerHTML = orders.length ? orders.map(o => `
+      <tr>
+        <td>#${o.id}</td>
+        <td>${o.customer?.name || "—"}</td>
+        <td>${o.customer?.phone || "—"}</td>
+        <td>${(o.items || []).reduce((s,i) => s+i.qty, 0)} item(s)</td>
+        <td>${formatPrice(o.total)}</td>
+        <td>
+          <select class="select-status" data-status="${o.id}">
+            ${STATUSES.map(s => `<option value="${s}" ${s===o.status?"selected":""}>${s}</option>`).join("")}
+          </select>
+        </td>
+        <td class="text-dim">${new Date(o.createdAt).toLocaleDateString()}</td>
+        <td>
+          <div class="row-actions">
+            <button data-view="${o.id}">View</button>
+            <button class="danger" data-delete="${o.id}">Delete</button>
+          </div>
+        </td>
+      </tr>
+    `).join("") : `<tr><td colspan="8" class="text-dim">No orders yet.</td></tr>`;
+
+    tbody.querySelectorAll("[data-status]").forEach(sel => sel.onchange = async () => {
+      try { await adminFetch(`/api/admin/orders/${sel.dataset.status}`, { method: "PUT", body: JSON.stringify({ status: sel.value }) }); }
+      catch (e) { alert(e.message); }
+    });
+    tbody.querySelectorAll("[data-view]").forEach(b => b.onclick = () => viewOrder(Number(b.dataset.view)));
+    tbody.querySelectorAll("[data-delete]").forEach(b => b.onclick = async () => {
+      if (!confirm("Delete this order?")) return;
+      try { await adminFetch(`/api/admin/orders/${b.dataset.delete}`, { method: "DELETE" }); loadOrders(); }
+      catch (e) { alert(e.message); }
+    });
+  } catch (e) {
+    tbody.innerHTML = `<tr><td colspan="8" class="text-dim">${e.message}</td></tr>`;
+  }
+}
+
+function viewOrder(id) {
+  const o = orders.find(x => x.id === id);
+  if (!o) return;
+  document.getElementById("orderDetail").innerHTML = `
+    <p><strong>Customer:</strong> ${o.customer?.name || "—"} · ${o.customer?.phone || "—"} ${o.customer?.email ? "· "+o.customer.email : ""}</p>
+    <p><strong>Address:</strong> ${o.address?.line || "—"}, ${o.address?.city || ""} ${o.address?.postal || ""}</p>
+    <p><strong>Notes:</strong> ${o.notes || "—"}</p>
+    <p style="margin-top:12px;"><strong>Items:</strong></p>
+    <ul style="margin:8px 0 0 18px; list-style:disc; color:var(--ivory-dim); font-size:13px;">
+      ${(o.items||[]).map(i => `<li>${i.name} × ${i.qty} — ${formatPrice(i.price*i.qty)}</li>`).join("")}
+    </ul>
+    <p style="margin-top:14px; font-weight:700;">Total: ${formatPrice(o.total)}</p>
+  `;
+  document.getElementById("modalOverlay").classList.add("show");
+}
+document.getElementById("closeDetailBtn").onclick = () => document.getElementById("modalOverlay").classList.remove("show");
+
+loadOrders();
+</script>
+</body>
+</html>

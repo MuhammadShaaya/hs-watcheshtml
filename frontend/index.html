@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>H&amp;S Watches — Time, Refined</title>
+<meta name="description" content="H&S Watches — a house of considered automatic, chronograph and dress timepieces.">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body data-page="home">
+
+<nav class="nav" id="site-nav"></nav>
+
+<header class="hero">
+  <div class="hero-bg-ring" aria-hidden="true"></div>
+  <div class="hero-inner">
+    <div>
+      <span class="eyebrow">Est. for the deliberate wrist</span>
+      <h1>Every watch here<br>keeps <em>its own</em> time.</h1>
+      <p class="lede">Automatic movements, hand-finished cases, and dials built to be looked at twice. H&amp;S is a small selection of timepieces chosen — not manufactured — for people who notice details.</p>
+      <div class="hero-actions">
+        <a href="shop.html" class="btn btn-gold">Explore the collection</a>
+        <a href="about.html" class="btn btn-outline">Our story</a>
+      </div>
+      <div class="hero-stats">
+        <div><b>16</b><span>Curated timepieces</span></div>
+        <div><b>300m</b><span>Water resistance, top diver</span></div>
+        <div><b>COD</b><span>Cash on delivery, nationwide</span></div>
+      </div>
+    </div>
+    <div class="hero-visual">
+      <img src="https://picsum.photos/seed/heroluxury/900/1000" alt="Featured luxury watch">
+      <div class="tag"><b>Meridian Automatic</b>Chronograph · Steel</div>
+    </div>
+  </div>
+</header>
+
+<div class="hand-divider"></div>
+
+<section class="section">
+  <div class="container">
+    <div class="section-head">
+      <div>
+        <span class="eyebrow">The selection</span>
+        <h2>Featured this season</h2>
+      </div>
+      <a href="shop.html?featured=1" class="btn btn-ghost">View all featured →</a>
+    </div>
+    <div class="grid" id="featuredGrid">
+      <p class="text-dim">Loading watches…</p>
+    </div>
+  </div>
+</section>
+
+<section class="section section-alt">
+  <div class="container">
+    <div class="section-head">
+      <div>
+        <span class="eyebrow">Reduced, briefly</span>
+        <h2>On sale right now</h2>
+      </div>
+      <a href="shop.html" class="btn btn-ghost">Shop all →</a>
+    </div>
+    <div class="grid" id="saleGrid">
+      <p class="text-dim">Loading watches…</p>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container">
+    <div class="section-head">
+      <div>
+        <span class="eyebrow">Why H&amp;S</span>
+        <h2>Considered, not mass-produced</h2>
+      </div>
+    </div>
+    <div class="grid" style="grid-template-columns:repeat(3,1fr);">
+      <div class="card" style="padding:28px;">
+        <h3 style="font-size:18px; margin-bottom:10px;">Genuine movements</h3>
+        <p class="text-dim" style="font-size:14px;">Every automatic and chronograph is fitted with a tested, verified movement — nothing decorative.</p>
+      </div>
+      <div class="card" style="padding:28px;">
+        <h3 style="font-size:18px; margin-bottom:10px;">Cash on delivery</h3>
+        <p class="text-dim" style="font-size:14px;">Pay when it arrives at your door. No card details, no advance transfer, nationwide.</p>
+      </div>
+      <div class="card" style="padding:28px;">
+        <h3 style="font-size:18px; margin-bottom:10px;">Real people, real replies</h3>
+        <p class="text-dim" style="font-size:14px;">Questions about a piece go to an actual inbox, answered within a day — not a chatbot loop.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section section-alt">
+  <div class="container center">
+    <span class="eyebrow" style="justify-content:center;">From our customers</span>
+    <h2 style="margin:14px 0 40px;">Worn daily, mentioned often</h2>
+    <div class="grid" style="grid-template-columns:repeat(3,1fr);">
+      <div class="card" style="padding:26px; text-align:left;">
+        <div class="stars" style="margin-bottom:12px;">★★★★★</div>
+        <p class="text-dim" style="font-size:14px;">"The Meridian is heavier and better finished than watches twice the price. Arrived in three days, COD as promised."</p>
+        <p style="margin-top:14px; font-size:13px; color:var(--gold-light);">— Bilal R.</p>
+      </div>
+      <div class="card" style="padding:26px; text-align:left;">
+        <div class="stars" style="margin-bottom:12px;">★★★★★</div>
+        <p class="text-dim" style="font-size:14px;">"Bought the Aria for my wife. The mother-of-pearl dial photographs even better in person."</p>
+        <p style="margin-top:14px; font-size:13px; color:var(--gold-light);">— Sana K.</p>
+      </div>
+      <div class="card" style="padding:26px; text-align:left;">
+        <div class="stars" style="margin-bottom:12px;">★★★★☆</div>
+        <p class="text-dim" style="font-size:14px;">"Great communication when I asked about strap sizing before ordering. Watch fits perfectly."</p>
+        <p style="margin-top:14px; font-size:13px; color:var(--gold-light);">— Omar F.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer class="footer" id="site-footer"></footer>
+
+<script src="js/config.js"></script>
+<script src="js/api.js"></script>
+<script src="js/cart.js"></script>
+<script src="js/products.js"></script>
+<script src="js/main.js"></script>
+<script>
+(async function(){
+  try {
+    const products = await getAllProducts();
+    const featured = products.filter(p => p.featured).slice(0, 4);
+    const sale = products.filter(p => p.oldPrice).slice(0, 4);
+    const featuredGrid = document.getElementById("featuredGrid");
+    const saleGrid = document.getElementById("saleGrid");
+    featuredGrid.innerHTML = featured.length ? featured.map(productCard).join("") : `<p class="text-dim">No featured watches yet.</p>`;
+    saleGrid.innerHTML = sale.length ? sale.map(productCard).join("") : `<p class="text-dim">Nothing on sale right now.</p>`;
+    bindCardEvents(featuredGrid, products);
+    bindCardEvents(saleGrid, products);
+  } catch (e) {
+    document.getElementById("featuredGrid").innerHTML = `<p class="text-dim">Couldn't load products. Is the backend running? (${e.message})</p>`;
+  }
+})();
+</script>
+</body>
+</html>

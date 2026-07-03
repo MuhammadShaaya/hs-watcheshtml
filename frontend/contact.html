@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Contact — H&amp;S Watches</title>
+<link rel="stylesheet" href="css/style.css">
+<style>
+  .contact-wrap{ display:grid; grid-template-columns:1fr 1fr; gap:60px; align-items:start; }
+  @media (max-width:900px){ .contact-wrap{ grid-template-columns:1fr; } }
+  .info-row{ display:flex; gap:14px; padding:16px 0; border-bottom:1px solid var(--line); }
+  .info-row b{ display:block; color:var(--ivory); margin-bottom:2px; font-size:14px; }
+</style>
+</head>
+<body data-page="contact">
+
+<nav class="nav" id="site-nav"></nav>
+
+<section class="section">
+  <div class="container">
+    <span class="eyebrow">We reply within a day</span>
+    <h2 style="margin:14px 0 40px;">Get in touch</h2>
+    <div class="contact-wrap">
+      <div>
+        <p class="text-dim" style="max-width:420px; margin-bottom:24px;">Questions about a specific piece, sizing, or an order already placed — write to us and a real person will reply, not a script.</p>
+        <div class="info-row"><div><b>Email</b><span class="text-dim">hello@hswatches.store</span></div></div>
+        <div class="info-row"><div><b>Phone / WhatsApp</b><span class="text-dim">+92 300 000 0000</span></div></div>
+        <div class="info-row"><div><b>Hours</b><span class="text-dim">Mon–Sat, 11am–8pm</span></div></div>
+      </div>
+      <form id="contactForm">
+        <div id="formMsg" class="form-msg"></div>
+        <div class="field"><label>Name</label><input type="text" id="cName" required></div>
+        <div class="field"><label>Email</label><input type="email" id="cEmail" required></div>
+        <div class="field"><label>Subject</label><input type="text" id="cSubject" required></div>
+        <div class="field"><label>Message</label><textarea id="cMessage" required></textarea></div>
+        <button type="submit" class="btn btn-gold btn-block" id="sendBtn">Send message</button>
+      </form>
+    </div>
+  </div>
+</section>
+
+<footer class="footer" id="site-footer"></footer>
+
+<script src="js/config.js"></script>
+<script src="js/api.js"></script>
+<script src="js/cart.js"></script>
+<script src="js/main.js"></script>
+<script>
+document.getElementById("contactForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const msg = document.getElementById("formMsg");
+  const btn = document.getElementById("sendBtn");
+  const payload = {
+    name: document.getElementById("cName").value.trim(),
+    email: document.getElementById("cEmail").value.trim(),
+    subject: document.getElementById("cSubject").value.trim(),
+    message: document.getElementById("cMessage").value.trim(),
+  };
+  btn.disabled = true; btn.textContent = "Sending…";
+  try {
+    await apiPost("/api/messages", payload);
+    msg.className = "form-msg ok show";
+    msg.textContent = "Message sent — we'll reply within a day.";
+    document.getElementById("contactForm").reset();
+  } catch (err) {
+    msg.className = "form-msg err show";
+    msg.textContent = `Couldn't send message: ${err.message}. Is the backend running?`;
+  }
+  btn.disabled = false; btn.textContent = "Send message";
+});
+</script>
+</body>
+</html>
