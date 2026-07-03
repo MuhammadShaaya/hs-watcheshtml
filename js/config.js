@@ -4,6 +4,7 @@
 // While testing locally with `npm start` in /backend, leave it as localhost.
 // ============================================================
 const API_BASE_URL = "https://hs-watcheshtml-backend.onrender.com";
+apiGet("/api/products");
 
 // Currency shown across the storefront. Change to "$", "Rs.", "€" etc.
 const CURRENCY_SYMBOL = "Rs.";
