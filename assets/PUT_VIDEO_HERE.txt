@@ -1,0 +1,19 @@
+Download one of these (free, real watch-mechanism footage, from Pexels):
+
+1. https://www.pexels.com/video/close-up-of-watch-mechanism-11965370/
+2. https://www.pexels.com/video/close-up-of-clock-mechanism-12163206/
+3. https://www.pexels.com/video/internal-parts-of-a-watch-8322056/
+
+Save the file in this folder as exactly:
+
+    watch-mechanism.mp4
+
+That's it — index.html and about.html already reference this path. If the
+file isn't here, the pages just show a still poster image instead (nothing
+breaks).
+
+Tip: if the downloaded file is large (some 4K clips are 50MB+), compress it
+first so your site loads fast. Free tools: Handbrake (desktop app) or
+https://www.freeconvert.com/video-compressor — aim for under 5-8MB by
+lowering resolution to ~1280px wide and trimming the clip to 10-20 seconds
+(it loops anyway, so it doesn't need to be long).

@@ -10,13 +10,23 @@
 
 <nav class="nav" id="site-nav"></nav>
 
-<header class="section" style="padding-bottom:20px;">
-  <div class="container" style="max-width:760px;">
+<section class="cine-video size-hero" aria-label="Watchmaking craftsmanship">
+  <img class="cine-poster" src="https://picsum.photos/seed/aboutmechanism/1600/1000" alt="Close-up of watch craftsmanship">
+  <video muted loop playsinline preload="metadata" poster="https://picsum.photos/seed/aboutmechanism/1600/1000">
+    <source src="assets/watch-mechanism.mp4" type="video/mp4">
+  </video>
+  <div class="cine-content">
     <span class="eyebrow">Our story</span>
-    <h1 style="font-family:var(--font-display); font-size:clamp(30px,4vw,44px); margin:16px 0 20px;">A small selection, chosen carefully</h1>
+    <h2>A small selection, chosen carefully</h2>
+    <p>Every piece we carry is judged the same way a watchmaker judges a movement — up close, under light, with no room for shortcuts.</p>
+  </div>
+</section>
+
+<section class="section" style="padding-bottom:20px;">
+  <div class="container" style="max-width:760px;">
     <p class="text-dim" style="font-size:16px;">H&amp;S Watches began as a simple frustration: most "luxury" watch stores online are either wildly overpriced or full of pieces that look better in a photo than on a wrist. We set out to build the opposite — a short, honest catalogue of watches worth the money, sold with cash-on-delivery so you can inspect before you pay.</p>
   </div>
-</header>
+</section>
 
 <div class="hand-divider"></div>
 
@@ -52,5 +62,6 @@
 <script src="js/config.js"></script>
 <script src="js/cart.js"></script>
 <script src="js/main.js"></script>
+<script src="js/cine-video.js"></script>
 </body>
 </html>
